@@ -6,7 +6,7 @@
     "module": "dist/module/index.js",
     "scripts": {
         "build": "rimraf ./dist && tsc && tsc && tsc -p tsconfig.main.json",
-        "pub": "npm publish --access public --no-git-checks",
+        "pub": "pnpm format && npm publish --access public --no-git-checks",
         "bump-deps": "npx npm-check-updates -u -x chalk && pnpm up --latest --filter=!chalk && pnpm run format",
         "format": "biome check . --write --skip-errors",
         "clean": "git clean -xdf .cache .turbo node_modules -f",
