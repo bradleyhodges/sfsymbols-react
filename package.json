@@ -6,8 +6,7 @@
     "module": "dist/module/index.js",
     "scripts": {
         "build": "rimraf ./dist && tsc && tsc && tsc -p tsconfig.main.json",
-        "pub": "pnpm publish --registry=https://npm.corp.advena.com.au",
-        "force-pub": "pnpm run pub --no-git-checks",
+        "pub": "npm publish --access public --no-git-checks",
         "bump-deps": "npx npm-check-updates -u -x chalk && pnpm up --latest --filter=!chalk && pnpm run format",
         "format": "biome check . --write --skip-errors",
         "clean": "git clean -xdf .cache .turbo node_modules -f",
@@ -19,12 +18,9 @@
             "require": "./dist/main/index.js"
         }
     },
-    "publishConfig": {
-        "registry": "https://npm.corp.advena.com.au"
-    },
-    "repository": "https://github.com/AdvenaHQ/registry/tree/main/packages/sfsymbols",
+    "repository": "https://github.com/bradleyhodges/sfsymbols-react",
     "bugs": {
-        "url": "https://github.com/AdvenaHQ/registry/issues"
+        "url": "https://github.com/bradleyhodges/sfsymbols-react/issues"
     },
     "author": "Bradley Hodges",
     "devDependencies": {
