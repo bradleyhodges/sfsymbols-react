@@ -1,0 +1,49 @@
+{
+    "name": "@bradleyhodges/sfsymbols-react",
+    "description": "Components and utilities for using icons from the @bradleyhodges/sfsymbols package in React applications.",
+    "version": "7.0.4",
+    "main": "dist/main/index.js",
+    "module": "dist/module/index.js",
+    "scripts": {
+        "build": "rimraf ./dist && tsc && tsc && tsc -p tsconfig.main.json",
+        "pub": "pnpm publish --registry=https://npm.corp.advena.com.au",
+        "force-pub": "pnpm run pub --no-git-checks",
+        "bump-deps": "npx npm-check-updates -u -x chalk && pnpm up --latest --filter=!chalk && pnpm run format",
+        "format": "biome check . --write --skip-errors",
+        "clean": "git clean -xdf .cache .turbo node_modules -f",
+        "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/module/index.js",
+            "require": "./dist/main/index.js"
+        }
+    },
+    "publishConfig": {
+        "registry": "https://npm.corp.advena.com.au"
+    },
+    "repository": "https://github.com/AdvenaHQ/registry/tree/main/packages/sfsymbols",
+    "bugs": {
+        "url": "https://github.com/AdvenaHQ/registry/issues"
+    },
+    "author": "Bradley Hodges",
+    "devDependencies": {
+        "@types/node": "22.10.5",
+        "@types/react": "^19.1.6",
+        "@types/react-dom": "^19.1.6",
+        "@biomejs/biome": "1.9.4",
+        "rimraf": "^6.0.1",
+        "ts-node": "^10.9.2",
+        "tslib": "^2.8.1",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "@bradleyhodges/sfsymbols-types": "7.0.4",
+        "@types/node": "24.0.7",
+        "clsx": "^2.1.1",
+        "next": "^15.3.4",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "tailwind-merge": "^3.3.1"
+    }
+}
