@@ -1,7 +1,7 @@
 {
     "name": "@bradleyhodges/sfsymbols-react",
     "description": "Components and utilities for using icons from the @bradleyhodges/sfsymbols package in React applications.",
-    "version": "8.0.2",
+    "version": "8.0.4",
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",
     "scripts": {
@@ -9,7 +9,6 @@
         "pub": "pnpm format && npm publish --access public --no-git-checks",
         "bump-deps": "npx npm-check-updates -u -x 'chalk,@biomejs/biome' && pnpm up --latest --filter=!chalk && pnpm run format",
         "format": "biome check . --write --skip-errors",
-        "clean": "git clean -xdf .cache .turbo node_modules -f",
         "typecheck": "tsc --noEmit --emitDeclarationOnly false"
     },
     "exports": {
@@ -34,7 +33,7 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
-        "@bradleyhodges/sfsymbols-types": "8.0.2",
+        "@bradleyhodges/sfsymbols-types": "8.0.4",
         "@types/node": "26.4.1",
         "cn": "^0.2.5",
         "next": "^16.3.4",
