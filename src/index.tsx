@@ -1,6 +1,6 @@
 import type { SFIconProps } from "@bradleyhodges/sfsymbols-types";
-import * as React from "react";
 import { cn } from "cn";
+import * as React from "react";
 
 /**
  * `SFIcon` – React SVG icon wrapper for the `@bradleyhodges/sfsymbols` symbol set.
