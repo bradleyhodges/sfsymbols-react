@@ -10,6 +10,7 @@
         "strict": true,
         "noImplicitOverride": true,
         "module": "preserve",
+								"rootDir": "src",
         "outDir": "dist/module",
         "sourceMap": false,
         /* AND if you're building for a library: */
