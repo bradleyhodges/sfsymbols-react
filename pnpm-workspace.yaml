@@ -1,0 +1,4 @@
+allowBuilds:
+  '@biomejs/biome': true
+minimumReleaseAgeExclude:
+  - '@bradleyhodges/sfsymbols-types@8.0.2'
