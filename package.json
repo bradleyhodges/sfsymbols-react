@@ -34,9 +34,9 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
-        "clsx": "^2.1.1",
         "@bradleyhodges/sfsymbols-types": "8.0.2",
         "@types/node": "26.4.1",
+        "cn": "^0.2.5",
         "next": "^16.3.4",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
