@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SFIcon = void 0;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const React = __importStar(require("react"));
-const cn_1 = require("./cn");
+const cn_1 = require("cn");
 /**
  * `SFIcon` – React SVG icon wrapper for the `@bradleyhodges/sfsymbols` symbol set.
  *

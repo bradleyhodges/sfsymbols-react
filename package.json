@@ -1,7 +1,7 @@
 {
     "name": "@bradleyhodges/sfsymbols-react",
     "description": "Components and utilities for using icons from the @bradleyhodges/sfsymbols package in React applications.",
-    "version": "7.0.4",
+    "version": "8.0.2",
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",
     "scripts": {
