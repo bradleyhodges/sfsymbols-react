@@ -1,7 +1,7 @@
 {
     "name": "@bradleyhodges/sfsymbols-react",
     "description": "Components and utilities for using icons from the @bradleyhodges/sfsymbols package in React applications.",
-    "version": "8.1.0",
+    "version": "8.1.1",
     "main": "./dist/main/index.js",
     "module": "./dist/module/index.js",
     "types": "./dist/main/index.d.ts",
@@ -12,10 +12,14 @@
         "test": "pnpm run build && node --test tests/*.test.cjs",
         "lint": "biome check src scripts tests package.json tsconfig.json tsconfig.main.json",
         "verify-package": "node scripts/verify-package.cjs",
+        "verify-catalogue": "node scripts/verify-catalogue.cjs",
+        "verify-next": "node scripts/verify-next-fixture.cjs",
+        "verify-typescript": "node scripts/verify-typescript-fixture.cjs",
+        "fixture:browser": "node scripts/serve-browser-fixture.cjs",
         "prepack": "pnpm run build && pnpm run verify-package",
         "pub": "pnpm format && npm publish --access public --no-git-checks",
         "bump-deps": "npx npm-check-updates -u -x 'chalk,@biomejs/biome' && pnpm up --latest --filter=!chalk && pnpm run format",
-        "format": "biome check . --write --skip-errors",
+        "format": "biome check src scripts tests package.json tsconfig.json tsconfig.main.json --write --skip-errors",
         "typecheck": "tsc --noEmit --emitDeclarationOnly false"
     },
     "exports": {

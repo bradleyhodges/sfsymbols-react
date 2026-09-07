@@ -27,6 +27,8 @@ export type SFIconPathProps = Omit<
 
 /** Additive React API, retaining compatibility with the companion package's legacy props. */
 export interface SFIconProps extends LegacySFIconProps {
+    /** Sets both dimensions; falls back to a positive definition dimension, then 1em. */
+    size?: LegacySFIconProps["size"];
     /** Native width overrides size and the definition's square fallback. */
     width?: React.SVGProps<SVGSVGElement>["width"];
     /** Native height overrides size and removes the styled entry's default height class. */

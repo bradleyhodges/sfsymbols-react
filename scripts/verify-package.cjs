@@ -108,7 +108,11 @@ function assertDependencyBoundary(entryPath, forbiddenPackage) {
 
 function assertPackageMetadata(root) {
     const packageJson = readJson(resolve(root, "package.json"));
-    assert.equal(packageJson.version, "8.1.0");
+    assert.match(
+        packageJson.version,
+        /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/,
+        "package version must be release-compatible semver",
+    );
     assert.equal(packageJson.sideEffects, false);
     assert.deepEqual(Object.keys(packageJson.exports), PUBLIC_PATHS);
     assert.deepEqual(packageJson.peerDependencies, {

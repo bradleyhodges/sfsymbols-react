@@ -61,10 +61,13 @@ test("variant views preserve known and custom names and reject invalid values", 
         bad: 2,
     });
     const result = api.getIconVariants({ variants: source });
-    assert.deepEqual({ ...result }, {
-        fill: "sfCircleFill",
-        custom: "sfCustom",
-    });
+    assert.deepEqual(
+        { ...result },
+        {
+            fill: "sfCircleFill",
+            custom: "sfCustom",
+        },
+    );
     assert.notEqual(result, source);
     assert.equal(Object.getPrototypeOf(result), null);
     assert.ok(Object.isFrozen(result));
@@ -92,9 +95,12 @@ test("inherited properties, getters and prototype keys are never trusted", () =>
         enumerable: true,
         value: "sfUnsafe",
     });
-    assert.deepEqual({ ...api.getIconVariants({ variants: source }) }, {
-        fill: "sfCircleFill",
-    });
+    assert.deepEqual(
+        { ...api.getIconVariants({ variants: source }) },
+        {
+            fill: "sfCircleFill",
+        },
+    );
     assert.deepEqual(api.getIconKeywords({ keywords: source }), [
         { text: "sfCircleFill" },
     ]);

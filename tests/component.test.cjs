@@ -224,7 +224,28 @@ for (const entry of ["index", "unstyled"]) {
         );
         assert.equal(ids.length, 4);
         assert.equal(new Set(ids).size, 4);
-        for (const id of ids) assert.ok(html.includes(`="${id}"`));
+        const svgTags = [...html.matchAll(/<svg\b[^>]*>/g)].map(([tag]) => tag);
+        assert.equal(svgTags.length, 2);
+        for (const [index, svgTag] of svgTags.entries()) {
+            const titleId = /aria-labelledby="([^"]+)"/.exec(svgTag)?.[1];
+            const descriptionId = /aria-describedby="([^"]+)"/.exec(
+                svgTag,
+            )?.[1];
+            assert.ok(titleId);
+            assert.ok(descriptionId);
+            const iconMarkup = html.slice(
+                html.indexOf(svgTag),
+                html.indexOf("</svg>", html.indexOf(svgTag)) + 6,
+            );
+            assert.match(iconMarkup, new RegExp(`<title id="${titleId}">`));
+            assert.match(
+                iconMarkup,
+                new RegExp(`<desc id="${descriptionId}">`),
+            );
+            const otherSvgTag = svgTags[1 - index];
+            assert.doesNotMatch(otherSvgTag, new RegExp(titleId));
+            assert.doesNotMatch(otherSvgTag, new RegExp(descriptionId));
+        }
     });
     test(`${entry}: legacy children ignored, svgChildren compose before paths`, () => {
         assert.doesNotMatch(

@@ -30,7 +30,7 @@ const publicEntries = {
 };
 
 test("package metadata exposes dual modules and declarations for every public entry", () => {
-    assert.equal(packageJson.version, "8.1.0");
+    assert.equal(packageJson.version, "8.1.1");
     assert.equal(packageJson.main, "./dist/main/index.js");
     assert.equal(packageJson.module, "./dist/module/index.js");
     assert.equal(packageJson.types, "./dist/main/index.d.ts");
@@ -106,6 +106,26 @@ test("package allowlist and lifecycle scripts are release-safe", () => {
         packageJson.scripts["verify-package"],
         "node scripts/verify-package.cjs",
     );
+    assert.equal(
+        packageJson.scripts["verify-catalogue"],
+        "node scripts/verify-catalogue.cjs",
+    );
+    assert.equal(
+        packageJson.scripts["verify-typescript"],
+        "node scripts/verify-typescript-fixture.cjs",
+    );
+    assert.equal(
+        packageJson.scripts["verify-next"],
+        "node scripts/verify-next-fixture.cjs",
+    );
+    assert.equal(
+        packageJson.scripts["fixture:browser"],
+        "node scripts/serve-browser-fixture.cjs",
+    );
+    assert.equal(
+        packageJson.scripts.format,
+        "biome check src scripts tests package.json tsconfig.json tsconfig.main.json --write --skip-errors",
+    );
     assert.doesNotMatch(
         packageJson.scripts["verify-package"],
         /(?:npm|pnpm)\s+(?:run\s+)?pack\b/i,
@@ -180,7 +200,7 @@ test("release verifier rejects direct and transitive bare cn imports", () => {
     }
 });
 
-test("packed artifacts contain only the allowlist and load through native ESM and CommonJS", () => {
+test("packed artifacts contain only the allowlist and load through native ESM, CommonJS and browser bundling", async () => {
     const packDirectory = mkdtempSync(join(tmpdir(), "sfsymbols-react-pack-"));
     const consumer = mkdtempSync(join(tmpdir(), "sfsymbols-react-consumer-"));
     try {
@@ -275,69 +295,85 @@ test("packed artifacts contain only the allowlist and load through native ESM an
             verifiedConsumer.stdout,
             /Verified consumer test \(React 19\.2\.8\)/,
         );
+
+        const esbuild = require("esbuild");
+        const installedPackage = resolve(
+            consumer,
+            "node_modules/@bradleyhodges/sfsymbols-react",
+        );
+        const bundle = async (contents, format = "esm") => {
+            const result = await esbuild.build({
+                absWorkingDir: consumer,
+                bundle: true,
+                external: ["react", "react/jsx-runtime"],
+                format,
+                logLevel: "silent",
+                metafile: true,
+                minify: true,
+                platform: "browser",
+                stdin: {
+                    contents,
+                    resolveDir: consumer,
+                    sourcefile: "package-boundary.mjs",
+                },
+                treeShaking: true,
+                write: false,
+            });
+            const packageInputs = Object.keys(result.metafile.inputs).filter(
+                (path) => path.includes("sfsymbols-react/"),
+            );
+            for (const input of packageInputs) {
+                const relativeInput = require("node:path").relative(
+                    installedPackage,
+                    resolve(consumer, input),
+                );
+                assert.ok(
+                    relativeInput &&
+                        !relativeInput.startsWith("..") &&
+                        !require("node:path").isAbsolute(relativeInput),
+                    `bundle input escaped installed tarball: ${input}`,
+                );
+            }
+            return { packageInputs, result };
+        };
+        const includesCn = (result) =>
+            Object.values(result.metafile.outputs).some((output) =>
+                Object.entries(output.inputs).some(
+                    ([path, contribution]) =>
+                        contribution.bytesInOutput > 0 &&
+                        /(?:^|[\\/])node_modules[\\/](?:\.pnpm[\\/]cn@[^\\/]+[\\/]node_modules[\\/])?cn[\\/]/.test(
+                            path,
+                        ),
+                ),
+            );
+
+        const styled = await bundle(
+            `import { SFIcon } from "${packageJson.name}"; console.log(SFIcon);`,
+        );
+        assert.ok(styled.packageInputs.length > 0);
+        assert.equal(includesCn(styled.result), true);
+        const unstyled = await bundle(
+            `import { SFIcon } from "${packageJson.name}/unstyled"; console.log(SFIcon);`,
+        );
+        assert.ok(unstyled.packageInputs.length > 0);
+        assert.equal(includesCn(unstyled.result), false);
+        const unstyledCommonJs = await bundle(
+            `const { SFIcon } = require("${packageJson.name}/unstyled"); console.log(SFIcon);`,
+            "cjs",
+        );
+        assert.ok(unstyledCommonJs.packageInputs.length > 0);
+        assert.equal(includesCn(unstyledCommonJs.result), false);
+        const helpers = await bundle(
+            `import { getIconKeywords, getIconVariants } from "${packageJson.name}"; console.log(getIconKeywords, getIconVariants);`,
+        );
+        assert.ok(helpers.packageInputs.length > 0);
+        assert.equal(includesCn(helpers.result), false);
+        const unused = await bundle(
+            `import { SFIcon } from "${packageJson.name}"; console.log("kept");`,
+        );
+        assert.ok(unused.result.outputFiles[0].contents.length < 30);
     } finally {
         rmSync(packDirectory, { recursive: true, force: true });
         rmSync(consumer, { recursive: true, force: true });
     }
-});
-
-test("bundle boundaries keep cn out of unstyled and helper-only imports", async () => {
-    const esbuild = require("esbuild");
-    async function bundle(contents, format = "esm") {
-        return esbuild.build({
-            absWorkingDir: root,
-            bundle: true,
-            external: ["react", "react/jsx-runtime"],
-            format,
-            logLevel: "silent",
-            metafile: true,
-            platform: "browser",
-            stdin: {
-                contents,
-                resolveDir: root,
-                sourcefile: "package-boundary.mjs",
-            },
-            treeShaking: true,
-            write: false,
-        });
-    }
-    function includesCn(result) {
-        return Object.values(result.metafile.outputs).some((output) =>
-            Object.entries(output.inputs).some(
-                ([path, contribution]) =>
-                    contribution.bytesInOutput > 0 &&
-                    /(?:^|[\\/])node_modules[\\/]\.pnpm[\\/]cn@|(?:^|[\\/])node_modules[\\/]cn[\\/]/.test(
-                        path,
-                    ),
-            ),
-        );
-    }
-
-    const styled = await bundle(
-        `import { SFIcon } from "${packageJson.name}"; console.log(SFIcon);`,
-    );
-    assert.equal(includesCn(styled), true, "styled entry must retain cn");
-
-    const unstyled = await bundle(
-        `import { SFIcon } from "${packageJson.name}/unstyled"; console.log(SFIcon);`,
-    );
-    assert.equal(includesCn(unstyled), false, "unstyled entry must exclude cn");
-    const unstyledCommonJs = await bundle(
-        `const { SFIcon } = require("${packageJson.name}/unstyled"); console.log(SFIcon);`,
-        "cjs",
-    );
-    assert.equal(
-        includesCn(unstyledCommonJs),
-        false,
-        "CommonJS unstyled entry must exclude cn",
-    );
-
-    const helpers = await bundle(
-        `import { getIconKeywords, getIconVariants } from "${packageJson.name}"; console.log(getIconKeywords, getIconVariants);`,
-    );
-    assert.equal(
-        includesCn(helpers),
-        false,
-        "helper-only root imports must tree-shake the styled renderer",
-    );
 });

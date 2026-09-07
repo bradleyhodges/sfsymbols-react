@@ -238,6 +238,26 @@ test("Windows rename retries are bounded and limited to transient lock errors", 
     assert.deepEqual(waits, [20, 40]);
 
     attempts = 0;
+    waits.length = 0;
+    assert.throws(
+        () =>
+            renameWithRetry("source", "destination", {
+                rename() {
+                    attempts++;
+                    throw Object.assign(new Error("still locked"), {
+                        code: "EBUSY",
+                    });
+                },
+                wait(milliseconds) {
+                    waits.push(milliseconds);
+                },
+            }),
+        /still locked/,
+    );
+    assert.equal(attempts, 5);
+    assert.deepEqual(waits, [20, 40, 80, 160]);
+
+    attempts = 0;
     assert.throws(
         () =>
             renameWithRetry("source", "destination", {
