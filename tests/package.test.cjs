@@ -1,6 +1,14 @@
 const assert = require("node:assert/strict");
 const { spawnSync } = require("node:child_process");
-const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("node:fs");
+const {
+    cpSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    rmSync,
+    symlinkSync,
+    writeFileSync,
+} = require("node:fs");
 const { tmpdir } = require("node:os");
 const { dirname, join, resolve } = require("node:path");
 const test = require("node:test");
@@ -113,6 +121,63 @@ test("release verifier accepts a fresh dual-module build", () => {
     );
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.match(result.stdout, /Package verification passed/);
+});
+
+test("release verifier rejects direct and transitive bare cn imports", () => {
+    for (const kind of ["direct", "transitive"]) {
+        const project = mkdtempSync(
+            join(tmpdir(), `sfsymbols-react-verifier-${kind}-`),
+        );
+        try {
+            cpSync(resolve(root, "dist"), resolve(project, "dist"), {
+                recursive: true,
+            });
+            cpSync(resolve(root, "src"), resolve(project, "src"), {
+                recursive: true,
+            });
+            cpSync(
+                resolve(root, "package.json"),
+                resolve(project, "package.json"),
+            );
+            mkdirSync(resolve(project, "scripts"));
+            cpSync(
+                resolve(root, "scripts/verify-package.cjs"),
+                resolve(project, "scripts/verify-package.cjs"),
+            );
+            symlinkSync(
+                resolve(root, "node_modules"),
+                resolve(project, "node_modules"),
+                "junction",
+            );
+
+            const unstyled = resolve(project, "dist/module/unstyled.js");
+            if (kind === "direct") {
+                writeFileSync(
+                    unstyled,
+                    `import "cn";\n${readFileSync(unstyled, "utf8")}`,
+                );
+            } else {
+                writeFileSync(
+                    resolve(project, "dist/module/unstyled-helper.js"),
+                    'import "cn";\n',
+                );
+                writeFileSync(
+                    unstyled,
+                    `import "./unstyled-helper.js";\n${readFileSync(unstyled, "utf8")}`,
+                );
+            }
+
+            const result = spawnSync(
+                process.execPath,
+                [resolve(project, "scripts/verify-package.cjs")],
+                { cwd: project, encoding: "utf8" },
+            );
+            assert.notEqual(result.status, 0, result.stdout + result.stderr);
+            assert.match(result.stderr, /reaches cn/i);
+        } finally {
+            rmSync(project, { recursive: true, force: true });
+        }
+    }
 });
 
 test("packed artifacts contain only the allowlist and load through native ESM and CommonJS", () => {

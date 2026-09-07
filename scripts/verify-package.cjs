@@ -72,11 +72,17 @@ function assertDeclarationMaps(root) {
     }
 }
 
-function localDependencies(source) {
-    return Array.from(
-        source.matchAll(/(?:from\s+|require\s*\()(["'])(\.\.?\/[^"']+)\1/g),
-        (match) => match[2],
-    );
+function moduleDependencies(source) {
+    const dependencies = [];
+    const esmMatcher =
+        /(?:^|[;\r\n])\s*(?:import|export)\s+(?:[^"'`;]*?\s+from\s+)?(["'])([^"']+)\1/g;
+    for (const match of source.matchAll(esmMatcher))
+        dependencies.push(match[2]);
+    const commonJsMatcher = /\brequire\s*\(\s*(["'])([^"']+)\1\s*\)/g;
+    for (const match of source.matchAll(commonJsMatcher)) {
+        dependencies.push(match[2]);
+    }
+    return dependencies;
 }
 
 function assertDependencyBoundary(entryPath, forbiddenPackage) {
@@ -87,18 +93,13 @@ function assertDependencyBoundary(entryPath, forbiddenPackage) {
         if (visited.has(file)) continue;
         visited.add(file);
         const source = readFileSync(file, "utf8");
-        const escapedPackage = forbiddenPackage.replace(
-            /[.*+?^${}()|[\]\\]/g,
-            "\\$&",
-        );
-        assert.doesNotMatch(
-            source,
-            new RegExp(
-                `(?:from\\s+["']${escapedPackage}["']|require\\s*\\(\\s*["']${escapedPackage}["'])`,
-            ),
-            `${entryPath} reaches ${forbiddenPackage} through ${file}`,
-        );
-        for (const dependency of localDependencies(source)) {
+        for (const dependency of moduleDependencies(source)) {
+            assert.ok(
+                dependency !== forbiddenPackage &&
+                    !dependency.startsWith(`${forbiddenPackage}/`),
+                `${entryPath} reaches ${forbiddenPackage} through ${file}`,
+            );
+            if (!dependency.startsWith(".")) continue;
             const candidate = resolve(dirname(file), dependency);
             if (existsSync(candidate)) pending.push(candidate);
         }

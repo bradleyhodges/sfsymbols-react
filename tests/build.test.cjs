@@ -5,6 +5,7 @@ const {
     mkdirSync,
     mkdtempSync,
     readFileSync,
+    renameSync,
     rmSync,
     symlinkSync,
     writeFileSync,
@@ -16,7 +17,9 @@ const test = require("node:test");
 
 const root = resolve(__dirname, "..");
 const buildScript = resolve(root, "scripts/build.cjs");
-const { renameWithRetry, replaceDist } = require(buildScript);
+const { assertUnstyledBoundary, renameWithRetry, replaceDist } = require(
+    buildScript,
+);
 
 function createProject() {
     const project = mkdtempSync(join(tmpdir(), "sfsymbols-react-build-"));
@@ -126,6 +129,26 @@ test("a native module evaluation failure preserves the previous dist", () => {
         assertPreviousDistSurvived(project);
     } finally {
         rmSync(project, { recursive: true, force: true });
+    }
+});
+
+test("unstyled validation rejects direct and transitive bare cn imports", () => {
+    for (const kind of ["direct", "transitive"]) {
+        const project = mkdtempSync(
+            join(tmpdir(), `sfsymbols-react-boundary-${kind}-`),
+        );
+        try {
+            const entry = resolve(project, "unstyled.js");
+            if (kind === "direct") {
+                writeFileSync(entry, 'import "cn";\n');
+            } else {
+                writeFileSync(entry, 'import "./helper.js";\n');
+                writeFileSync(resolve(project, "helper.js"), 'import "cn";\n');
+            }
+            assert.throws(() => assertUnstyledBoundary(entry), /reaches cn/i);
+        } finally {
+            rmSync(project, { recursive: true, force: true });
+        }
     }
 });
 
@@ -257,6 +280,27 @@ test("a replacement failure rolls the previous dist back into place", () => {
             "previous release",
         );
         assert.equal(existsSync(previousDist), false);
+    } finally {
+        rmSync(project, { recursive: true, force: true });
+    }
+});
+
+test("a retry restores a pending previous dist before compiling", () => {
+    const project = createProject();
+    try {
+        const stageRoot = resolve(project, "build-out");
+        const previousDist = resolve(stageRoot, "previous-dist");
+        mkdirSync(stageRoot, { recursive: true });
+        renameSync(resolve(project, "dist"), previousDist);
+        writeFileSync(
+            resolve(project, "src/compiler-error.ts"),
+            "export const invalid: string = 42;\n",
+        );
+
+        const result = runBuild(project);
+        assert.notEqual(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stderr, /compiler failed/i);
+        assertPreviousDistSurvived(project);
     } finally {
         rmSync(project, { recursive: true, force: true });
     }

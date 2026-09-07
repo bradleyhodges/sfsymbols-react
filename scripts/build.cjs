@@ -215,10 +215,16 @@ function assertExports(path, format, entry) {
     }
 }
 
-function localDependencies(source) {
+function moduleDependencies(source) {
     const dependencies = [];
-    const matcher = /(?:from\s+|require\s*\()(["'])(\.\.?\/[^"']+)\1/g;
-    for (const match of source.matchAll(matcher)) dependencies.push(match[2]);
+    const esmMatcher =
+        /(?:^|[;\r\n])\s*(?:import|export)\s+(?:[^"'`;]*?\s+from\s+)?(["'])([^"']+)\1/g;
+    for (const match of source.matchAll(esmMatcher))
+        dependencies.push(match[2]);
+    const commonJsMatcher = /\brequire\s*\(\s*(["'])([^"']+)\1\s*\)/g;
+    for (const match of source.matchAll(commonJsMatcher)) {
+        dependencies.push(match[2]);
+    }
     return dependencies;
 }
 
@@ -230,10 +236,11 @@ function assertUnstyledBoundary(entryPath) {
         if (visited.has(file)) continue;
         visited.add(file);
         const source = readFileSync(file, "utf8");
-        if (/(?:from\s+["']cn["']|require\s*\(\s*["']cn["'])/.test(source)) {
-            throw new Error(`Unstyled entry reaches cn through ${file}`);
-        }
-        for (const dependency of localDependencies(source)) {
+        for (const dependency of moduleDependencies(source)) {
+            if (dependency === "cn" || dependency.startsWith("cn/")) {
+                throw new Error(`Unstyled entry reaches cn through ${file}`);
+            }
+            if (!dependency.startsWith(".")) continue;
             const candidate = resolve(dirname(file), dependency);
             if (existsSync(candidate)) pending.push(candidate);
         }
@@ -368,11 +375,24 @@ function replaceDist(paths) {
     }
 }
 
+function recoverPreviousDist(paths) {
+    if (!existsSync(paths.previousDist) || existsSync(paths.dist)) return;
+    try {
+        renameWithRetry(paths.previousDist, paths.dist);
+    } catch (error) {
+        throw new Error(
+            `Cannot start build: a previous dist recovery is pending at ${paths.previousDist}. Restore it to ${paths.dist} and retry. ${error.message}`,
+            { cause: error },
+        );
+    }
+}
+
 function buildPackage(projectRoot) {
     assertProjectRoot(projectRoot);
     const paths = buildPaths(projectRoot);
     const allowedRemovals = new Set([paths.stageRoot, paths.previousDist]);
     let keepStageForRecovery = false;
+    recoverPreviousDist(paths);
     removeChecked(paths.stageRoot, allowedRemovals);
     mkdirSync(resolve(paths.stagedDist, "module"), { recursive: true });
     mkdirSync(resolve(paths.stagedDist, "main"), { recursive: true });
@@ -429,6 +449,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+    assertUnstyledBoundary,
     buildPackage,
     renameWithRetry,
     replaceDist,
