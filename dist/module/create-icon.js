@@ -15,7 +15,7 @@ function safePathProps(props) {
 }
 /** Creates the shared memoized SVG renderer; entries supply only their class policy. */
 export function createSFIcon(resolveClassName) {
-    const SFIconBase = React.forwardRef(({ icon, color, className, weight = null, fillOpacity = null, size = null, width: nativeWidth, height: nativeHeight, title, description, titleId: customTitleId, descriptionId: customDescriptionId, svgChildren, children: _children, preservePathOpacity = false, pathProps, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, ...rest }, ref) => {
+    const SFIconBase = React.forwardRef(({ icon, color, className, weight = null, fillOpacity = null, size = null, width: nativeWidth, height: nativeHeight, title, description, titleId: customTitleId, descriptionId: customDescriptionId, svgChildren, children: _children, preservePathOpacity = false, pathProps, "aria-label": ariaLabel, ...rest }, ref) => {
         const { width, height, svgPathData, viewBox } = icon;
         const definitionSize = Number.isFinite(width) && width > 0
             ? width
@@ -51,7 +51,7 @@ export function createSFIcon(resolveClassName) {
                 : pathProps;
             return (_jsx("path", { d: path.d, fill: color ?? path.fill ?? "currentColor", fillOpacity: effectiveFillOpacity ?? path.fillOpacity, ...(overrides ? safePathProps(overrides) : {}) }, `${index}-${path.d}`));
         }), [svgPathData, color, effectiveFillOpacity, pathProps]);
-        return (_jsxs("svg", { ref: ref, width: nativeWidth ?? computedSize, height: nativeHeight ?? computedSize, focusable: false, xmlns: "http://www.w3.org/2000/svg", xmlnsXlink: "http://www.w3.org/1999/xlink", viewBox: computedViewBox, preserveAspectRatio: "xMidYMid meet", className: svgClassName, ...weightProps, role: "img", "aria-hidden": !(title || ariaLabel || ariaLabelledBy), "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy ?? titleId, "aria-describedby": ariaDescribedBy ?? descriptionId, ...rest, children: [title ? _jsx("title", { id: titleId, children: title }) : undefined, description ? (_jsx("desc", { id: descriptionId, children: description })) : undefined, svgChildren, paths] }));
+        return (_jsxs("svg", { ref: ref, width: nativeWidth ?? computedSize, height: nativeHeight ?? computedSize, focusable: false, xmlns: "http://www.w3.org/2000/svg", xmlnsXlink: "http://www.w3.org/1999/xlink", viewBox: computedViewBox, preserveAspectRatio: "xMidYMid meet", className: svgClassName, ...weightProps, role: "img", "aria-hidden": !(title || ariaLabel || rest["aria-labelledby"]), "aria-label": ariaLabel, "aria-labelledby": titleId, "aria-describedby": descriptionId, ...rest, children: [title ? _jsx("title", { id: titleId, children: title }) : undefined, description ? (_jsx("desc", { id: descriptionId, children: description })) : undefined, svgChildren, paths] }));
     });
     SFIconBase.displayName = "SFIcon";
     return React.memo(SFIconBase);

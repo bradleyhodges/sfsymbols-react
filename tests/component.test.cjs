@@ -157,6 +157,28 @@ for (const entry of ["index", "unstyled"]) {
         assert.match(html, /aria-hidden="true"/);
         assert.match(html, /role="presentation"/);
     });
+    test(`${entry}: explicitly undefined ARIA references suppress generated links`, () => {
+        const html = render({
+            title: "Fallback title",
+            description: "Fallback description",
+            titleId: "fallback-title",
+            descriptionId: "fallback-description",
+            "aria-label": "Caller name",
+            "aria-labelledby": undefined,
+            "aria-describedby": undefined,
+        });
+        assert.doesNotMatch(html, /aria-labelledby=|aria-describedby=/);
+        assert.match(html, /aria-label="Caller name"/);
+        assert.match(html, /aria-hidden="false"/);
+        assert.match(
+            html,
+            /<title id="fallback-title">Fallback title<\/title>/,
+        );
+        assert.match(
+            html,
+            /<desc id="fallback-description">Fallback description<\/desc>/,
+        );
+    });
     test(`${entry}: custom title/description IDs link escaped content`, () => {
         const html = render({
             title: "A < B",

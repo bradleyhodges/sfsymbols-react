@@ -47,8 +47,6 @@ export function createSFIcon(resolveClassName: ResolveClassName) {
                 preservePathOpacity = false,
                 pathProps,
                 "aria-label": ariaLabel,
-                "aria-labelledby": ariaLabelledBy,
-                "aria-describedby": ariaDescribedBy,
                 ...rest
             },
             ref,
@@ -130,10 +128,12 @@ export function createSFIcon(resolveClassName: ResolveClassName) {
                     className={svgClassName}
                     {...weightProps}
                     role="img"
-                    aria-hidden={!(title || ariaLabel || ariaLabelledBy)}
+                    aria-hidden={
+                        !(title || ariaLabel || rest["aria-labelledby"])
+                    }
                     aria-label={ariaLabel}
-                    aria-labelledby={ariaLabelledBy ?? titleId}
-                    aria-describedby={ariaDescribedBy ?? descriptionId}
+                    aria-labelledby={titleId}
+                    aria-describedby={descriptionId}
                     {...rest}
                 >
                     {title ? <title id={titleId}>{title}</title> : undefined}
