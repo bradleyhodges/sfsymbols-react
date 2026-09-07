@@ -7,6 +7,9 @@ type Node = { type: string; [key: string]: unknown };
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 export const iconNamePattern = /^sf[A-Za-z0-9_$]+$/;
 export const MAX_LEAF_BYTES = 65536;
+const svgNumber = String.raw`[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?`;
+const svgSeparator = String.raw`(?:[ \t\r\n]+,?[ \t\r\n]*|,[ \t\r\n]*)`;
+const viewBoxPattern = new RegExp(String.raw`^[ \t\r\n]*(${svgNumber})${svgSeparator}(${svgNumber})${svgSeparator}(${svgNumber})${svgSeparator}(${svgNumber})[ \t\r\n]*$`);
 
 function validGeometry(source: string): boolean {
   // Empty d is a valid non-rendering SVG path used by the installed catalogue.
@@ -119,7 +122,10 @@ export function parseIcon(source: string, name: string): PreviewIcon {
   if (!target) throw new Error('Expected named icon export was not found.');
   const icon = binding(target, 0);
   if (!record(icon) || icon.iconName !== name || typeof icon.viewBox !== 'string' || !Array.isArray(icon.svgPathData)) throw new Error('Invalid icon definition.');
-  const coordinates = icon.viewBox.trim().split(/[\s,]+/).map(Number);
+  // Number() alone accepts JavaScript-only forms such as hexadecimal; check SVG syntax first.
+  const viewBoxTokens = viewBoxPattern.exec(icon.viewBox);
+  if (!viewBoxTokens) throw new Error('Invalid viewBox.');
+  const coordinates = viewBoxTokens.slice(1).map(Number);
   if (coordinates.length !== 4 || coordinates.some(value => !Number.isFinite(value) || Math.abs(value) > 100000) || coordinates[2] <= 0 || coordinates[3] <= 0) throw new Error('Invalid viewBox.');
   if (!icon.svgPathData.length || icon.svgPathData.length > 128) throw new Error('Invalid path count.');
   let geometryLength = 0;

@@ -14,6 +14,15 @@ test('parses real static aliases and preserves geometry/opacity', () => {
   assert.equal(icon.paths[0].d, 'M0 0h20v20z');
   assert.match(renderSvg(icon, '#dddddd'), /fill-opacity="0.5"/);
 });
+test('accepts exactly four SVG viewBox numbers separated by valid comma-whitespace', () => {
+  const withViewBox = (viewBox: string) => leaf.replace('viewBox:"0 0 20 20"', `viewBox:${JSON.stringify(viewBox)}`);
+  for (const viewBox of ['0 0 0x14 20', '0 0 0b10 20', '0 0 Infinity 20', '0 0 NaN 20', '0 0 2_0 20', '0,,0,20,20', '0 0 20 20,', ',0 0 20 20', '0 0 20', '0 0 20 20 20', '0 0 20\u00a020', '0 0 20\v20', '0 0 1e999 20', '0 0 100001 20']) {
+    assert.throws(() => parseIcon(withViewBox(viewBox), 'sfCircle'), /Invalid viewBox/, viewBox);
+  }
+  for (const viewBox of ['0 0 20 20', '0,0,20,20', ' 0 ,\t0\r\n20 , 20 ', '+0 -0 2e1 20.', '.0,-.0,+2.0E+1,2e1']) {
+    assert.equal(parseIcon(withViewBox(viewBox), 'sfCircle').viewBox, '0 0 20 20', viewBox);
+  }
+});
 test('supports generated minified boolean metadata without allowing arbitrary unary expressions', () => {
   assert.equal(parseIcon(leaf.replace('iconName:', 'keywords:[{generic:!0}],iconName:'), 'sfCircle').name, 'sfCircle');
   assert.throws(() => parseIcon(leaf.replace('iconName:', 'keywords:[{generic:!call()}],iconName:'), 'sfCircle'));
@@ -28,6 +37,20 @@ test('recognizes TSX direct and root aliases and ignores strings and type-only i
   assert.equal(findIconAt(source, source.lastIndexOf('ring'), 'typescriptreact'), 'sfCircle');
   assert.equal(findIconAt(source, source.indexOf("'ring'")+1, 'typescriptreact'), undefined);
   assert.equal(findIconAt(source, source.indexOf('as T')+3, 'typescriptreact'), undefined);
+});
+test('hover recognizes both tokens of aliased value imports and excludes type-only imported tokens', () => {
+  for (const module of ['@bradleyhodges/sfsymbols', '@bradleyhodges/sfsymbols/sfCircle']) {
+    const source = `import {sfCircle as ring} from '${module}';`;
+    assert.equal(findIconAt(source, source.indexOf('sfCircle'), 'typescript'), 'sfCircle');
+    assert.equal(findIconAt(source, source.indexOf('ring'), 'typescript'), 'sfCircle');
+  }
+  const collision = `import {sfCircle as ring, sfSquare as sfCircle} from '@bradleyhodges/sfsymbols';`;
+  assert.equal(findIconAt(collision, collision.indexOf('sfCircle'), 'typescript'), 'sfCircle');
+  for (const clause of ['type {sfCircle as ring}', '{type sfCircle as ring}']) {
+    const source = `import ${clause} from '@bradleyhodges/sfsymbols';`;
+    assert.equal(findIconAt(source, source.indexOf('sfCircle'), 'typescript'), undefined);
+    assert.equal(findIconAt(source, source.indexOf('ring'), 'typescript'), undefined);
+  }
 });
 test('hover excludes shadowed parameters and unrelated object keys', () => {
   const source = `import {sfCircle as ring} from '@bradleyhodges/sfsymbols'; function f(ring: number) {return ring;} const x={ring: 2};`;

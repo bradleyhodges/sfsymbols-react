@@ -47,8 +47,9 @@ export function findIconAt(source: string, offset: number, language: string): st
     Identifier(location) {
       const node = location.node;
       if (node.start == null || node.end == null || offset < node.start || offset >= node.end) return;
-      const binding = location.scope.getBinding(node.name);
-      const importDeclaration = location.parentPath.isImportSpecifier();
+      const parent = location.parentPath;
+      const importDeclaration = parent.isImportSpecifier();
+      const binding = location.scope.getBinding(importDeclaration ? parent.node.local.name : node.name);
       if (binding?.path.isImportSpecifier() && (importDeclaration || location.isReferencedIdentifier())) name = values.get(binding.identifier.name);
     },
     MemberExpression(location) {
