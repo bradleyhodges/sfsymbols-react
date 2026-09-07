@@ -119,7 +119,7 @@ function assertPackageMetadata(root) {
         react: "^18.0.0 || ^19.0.0",
     });
     assert.deepEqual(packageJson.dependencies, {
-        "@bradleyhodges/sfsymbols-types": "^8.0.4",
+        "@bradleyhodges/sfsymbols-types": "^8.1.1",
         cn: "^0.2.5",
     });
     for (const publicPath of PUBLIC_PATHS) {
