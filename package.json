@@ -17,7 +17,7 @@
         "verify-typescript": "node scripts/verify-typescript-fixture.cjs",
         "fixture:browser": "node scripts/serve-browser-fixture.cjs",
         "prepack": "pnpm run build && pnpm run verify-package",
-        "pub": "pnpm format && npm publish --access public --no-git-checks",
+        "pub": "pnpm format && npm publish --access public --no-git-checks --tag latest",
         "bump-deps": "npx npm-check-updates -u -x 'chalk,@biomejs/biome' && pnpm up --latest --filter=!chalk && pnpm run format",
         "format": "biome check src scripts tests package.json tsconfig.json tsconfig.main.json --write --skip-errors",
         "typecheck": "tsc --noEmit --emitDeclarationOnly false"
