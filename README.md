@@ -52,7 +52,7 @@ For simplicity, **I've created a basic icon browser for this package, which you 
 
 ## 🚀 Getting Started
 
-This package contains the React components and metadata helpers that allow you to use these icons in your React/Next.js project. The actual icons and icon data for SF Symbols 8 come from the [`sfsymbols` package](https://www.npmjs.com/package/@bradleyhodges/sfsymbols-react), which you'll need to install as well.
+This package contains the React components and metadata helpers that allow you to use these icons in your React/Next.js project. The actual icons and icon data for SF Symbols 8 come from the [`sfsymbols` package](https://www.npmjs.com/package/@bradleyhodges/sfsymbols), which you'll need to install as well.
 
 ### Install the Packages
 
@@ -78,7 +78,7 @@ import { sfArrowUpCircleFill, sfCheckmark, sfCrossVialFill } from "@bradleyhodge
 function MyComponent() {
     return (
         <div>
-            <SFIcon icon={sfArrowUpCircleFill} />;
+            <SFIcon icon={sfArrowUpCircleFill} />
             <SFIcon icon={sfCheckmark} weight={2} />
             <SFIcon icon={sfCrossVialFill} size={24} className="text-red-500" />
         </div>
