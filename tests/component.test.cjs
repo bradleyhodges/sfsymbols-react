@@ -121,6 +121,10 @@ for (const entry of ["index", "unstyled"]) {
         assert.match(render(), /width="1em" height="1em"/);
         assert.match(render({ size: 0 }), /width="0" height="0"/);
         assert.match(render({ size: "2rem" }), /width="2rem" height="2rem"/);
+        assert.match(
+            render({ icon: { ...icon, width: "100%", height: undefined } }),
+            /width="1em" height="1em"/,
+        );
     });
     test(`${entry}: keeps square fallback and native dimension precedence`, () => {
         assert.match(

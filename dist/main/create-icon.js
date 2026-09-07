@@ -53,9 +53,11 @@ function safePathProps(props) {
 function createSFIcon(resolveClassName) {
     const SFIconBase = React.forwardRef(({ icon, color, className, weight = null, fillOpacity = null, size = null, width: nativeWidth, height: nativeHeight, title, description, titleId: customTitleId, descriptionId: customDescriptionId, svgChildren, children: _children, preservePathOpacity = false, pathProps, "aria-label": ariaLabel, ...rest }, ref) => {
         const { width, height, svgPathData, viewBox } = icon;
-        const definitionSize = Number.isFinite(width) && width > 0
+        const definitionSize = typeof width === "number" && Number.isFinite(width) && width > 0
             ? width
-            : Number.isFinite(height) && height > 0
+            : typeof height === "number" &&
+                Number.isFinite(height) &&
+                height > 0
                 ? height
                 : "1em";
         const computedSize = size ?? definitionSize;

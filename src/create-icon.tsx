@@ -53,9 +53,11 @@ export function createSFIcon(resolveClassName: ResolveClassName) {
         ) => {
             const { width, height, svgPathData, viewBox } = icon;
             const definitionSize =
-                Number.isFinite(width) && width > 0
+                typeof width === "number" && Number.isFinite(width) && width > 0
                     ? width
-                    : Number.isFinite(height) && height > 0
+                    : typeof height === "number" &&
+                        Number.isFinite(height) &&
+                        height > 0
                       ? height
                       : "1em";
             const computedSize = size ?? definitionSize;
