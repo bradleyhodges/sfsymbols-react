@@ -9,12 +9,14 @@
         /* Strictness */
         "strict": true,
         "noImplicitOverride": true,
+        "noUnusedLocals": true,
         "module": "preserve",
         "rootDir": "src",
         "outDir": "dist/module",
         "sourceMap": false,
         /* AND if you're building for a library: */
         "declaration": true,
+        "declarationMap": true,
         /* If your code runs in the DOM: */
         "lib": ["es2022", "dom", "dom.iterable"],
         /* If you're using JSX: */

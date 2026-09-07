@@ -1,6 +1,6 @@
 allowBuilds:
   '@biomejs/biome': true
+  esbuild: true
 minimumReleaseAgeExclude:
   # pnpm uses the first matching package rule; keep versions in one entry.
-  - '@bradleyhodges/sfsymbols-types@8.0.2 || 8.0.3'
-  - '@bradleyhodges/sfsymbols-types@8.0.4'
+  - '@bradleyhodges/sfsymbols-types@8.0.2 || 8.0.3 || 8.0.4 || 8.1.1'
