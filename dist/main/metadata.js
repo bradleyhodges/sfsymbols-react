@@ -51,12 +51,12 @@ function getIconKeywords(icon) {
     return Object.freeze(result);
 }
 /**
- * Returns a frozen copy of own string-valued variants, preserving source order.
+ * Returns a frozen, null-prototype copy of own string-valued variants, preserving source order.
  * Specify extra variant names as the type parameter for custom catalogues.
  */
 function getIconVariants(icon) {
     const variants = ownValue(icon, "variants");
-    const result = {};
+    const result = Object.create(null);
     if (isRecord(variants)) {
         for (const key of Object.keys(variants)) {
             if (RESERVED_KEYS.has(key))

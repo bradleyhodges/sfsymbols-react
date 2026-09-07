@@ -34,6 +34,9 @@ const unstyled = <Unstyled icon={icon} ref={ref} pathProps={{ strokeWidth: 2, st
 const variant: SFIconVariant = "fill";
 const keywords: readonly SFIconKeyword[] = getIconKeywords(icon);
 const custom: string | undefined = getIconVariants<"custom">(icon).custom;
+const prototypeNames = getIconVariants<"toString" | "valueOf">(icon);
+const toStringVariant: string | undefined = prototypeNames.toString;
+const valueOfVariant: string | undefined = prototypeNames.valueOf;
 // @ts-expect-error geometry is immutable through pathProps
 const geometry: SFIconPathProps = { d: "M0 0" };
 // @ts-expect-error refs cannot be attached through pathProps

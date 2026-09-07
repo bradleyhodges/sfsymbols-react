@@ -51,14 +51,14 @@ export function getIconKeywords(icon: unknown): readonly SFIconKeyword[] {
 }
 
 /**
- * Returns a frozen copy of own string-valued variants, preserving source order.
+ * Returns a frozen, null-prototype copy of own string-valued variants, preserving source order.
  * Specify extra variant names as the type parameter for custom catalogues.
  */
 export function getIconVariants<CustomVariant extends string = never>(
     icon: unknown,
 ): Readonly<Partial<Record<SFIconVariant | CustomVariant, string>>> {
     const variants = ownValue(icon, "variants");
-    const result: Record<string, string> = {};
+    const result: Record<string, string> = Object.create(null);
     if (isRecord(variants)) {
         for (const key of Object.keys(variants)) {
             if (RESERVED_KEYS.has(key)) continue;

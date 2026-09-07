@@ -44,11 +44,14 @@ test("null, primitives and malformed metadata produce empty safe results", () =>
     assert.equal(typeof api.getIconVariants, "function");
     for (const value of [null, undefined, false, true, 42, "text", () => {}]) {
         assert.deepEqual(api.getIconKeywords(value), []);
-        assert.deepEqual(api.getIconVariants(value), {});
+        assert.deepEqual({ ...api.getIconVariants(value) }, {});
         assert.deepEqual(api.getIconKeywords({ keywords: value }), []);
-        assert.deepEqual(api.getIconVariants({ variants: value }), {});
+        assert.deepEqual({ ...api.getIconVariants({ variants: value }) }, {});
     }
-    assert.deepEqual(api.getIconVariants({ variants: ["sfCircle"] }), {});
+    assert.deepEqual(
+        { ...api.getIconVariants({ variants: ["sfCircle"] }) },
+        {},
+    );
 });
 test("variant views preserve known and custom names and reject invalid values", () => {
     assert.equal(typeof api.getIconVariants, "function");
@@ -58,9 +61,21 @@ test("variant views preserve known and custom names and reject invalid values", 
         bad: 2,
     });
     const result = api.getIconVariants({ variants: source });
-    assert.deepEqual(result, { fill: "sfCircleFill", custom: "sfCustom" });
+    assert.deepEqual({ ...result }, {
+        fill: "sfCircleFill",
+        custom: "sfCustom",
+    });
     assert.notEqual(result, source);
+    assert.equal(Object.getPrototypeOf(result), null);
     assert.ok(Object.isFrozen(result));
+});
+test("absent custom variant names cannot resolve inherited prototype values", () => {
+    const result = api.getIconVariants({ variants: {} });
+    assert.equal(result.toString, undefined);
+    assert.equal(result.valueOf, undefined);
+    assert.equal(Object.hasOwn(result, "toString"), false);
+    assert.equal(Object.hasOwn(result, "valueOf"), false);
+    assert.equal(Object.getPrototypeOf(result), null);
 });
 test("inherited properties, getters and prototype keys are never trusted", () => {
     assert.equal(typeof api.getIconKeywords, "function");
@@ -77,14 +92,14 @@ test("inherited properties, getters and prototype keys are never trusted", () =>
         enumerable: true,
         value: "sfUnsafe",
     });
-    assert.deepEqual(api.getIconVariants({ variants: source }), {
+    assert.deepEqual({ ...api.getIconVariants({ variants: source }) }, {
         fill: "sfCircleFill",
     });
     assert.deepEqual(api.getIconKeywords({ keywords: source }), [
         { text: "sfCircleFill" },
     ]);
     assert.deepEqual(
-        api.getIconVariants(Object.create({ variants: source })),
+        { ...api.getIconVariants(Object.create({ variants: source })) },
         {},
     );
     assert.deepEqual(
