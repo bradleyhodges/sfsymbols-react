@@ -1,3 +1,4 @@
 dist/
 artifacts/
 .host/
+.vscode-test/
