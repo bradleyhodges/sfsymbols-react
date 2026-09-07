@@ -42,7 +42,7 @@
 </div>
 
 > [!CAUTION]
-> SF Symbols is licensed by Apple for use only on Apple platforms. **Use of this package, or any of the other @bradleyhodges/sfsymbols-* packages, outside of Apple platforms is NOT permitted.**
+> SF Symbols is licensed by Apple for use only on Apple platforms. **Use of this package, or any of the other @bradleyhodges/sfsymbols-\* packages, outside of Apple platforms is NOT permitted.**
 
 ## Available Icons
 <a href="https://github.com/bradleyhodges/sfsymbols">@bradleyhodges/sfsymbols</a> contains 8,111 icons, which includes 609 supplementary brand icons. All 7,502 of the `Regular` weight icons from the [San Francisco font](https://github.com/bradleyhodges/SFWindows) are included. Other weights and variable icon directives are not included in this package, but the icon weights can be made heavier by applying a stroke to the vector paths.
