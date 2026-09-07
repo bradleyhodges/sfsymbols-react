@@ -26,28 +26,36 @@ if (
     );
 }
 const fixture = mkdtempSync(resolve(consumer, ".sfsymbols-browser-fixture-"));
-const requireFromConsumer = createRequire(resolve(consumer, "package.json"));
-for (const packageName of [
-    "@bradleyhodges/sfsymbols-react",
-    "@bradleyhodges/sfsymbols/sfArrowUpCircleFill",
-    "react",
-    "react-dom/server",
-]) {
-    const packagePath = requireFromConsumer.resolve(packageName);
-    const relativePath = relative(consumer, packagePath);
-    assert.ok(
-        relativePath &&
-            !relativePath.startsWith("..") &&
-            !isAbsolute(relativePath),
-        `${packageName} does not resolve inside the installed consumer`,
-    );
-}
-
-for (const file of ["app.tsx", "client.tsx"]) {
-    copyFileSync(resolve(root, "tests/browser", file), resolve(fixture, file));
-}
+let server;
+let serverOwnsFixture = false;
 
 async function main() {
+    const requireFromConsumer = createRequire(
+        resolve(consumer, "package.json"),
+    );
+    for (const packageName of [
+        "@bradleyhodges/sfsymbols-react",
+        "@bradleyhodges/sfsymbols/sfArrowUpCircleFill",
+        "react",
+        "react-dom/server",
+    ]) {
+        const packagePath = requireFromConsumer.resolve(packageName);
+        const relativePath = relative(consumer, packagePath);
+        assert.ok(
+            relativePath &&
+                !relativePath.startsWith("..") &&
+                !isAbsolute(relativePath),
+            `${packageName} does not resolve inside the installed consumer`,
+        );
+    }
+
+    for (const file of ["app.tsx", "client.tsx"]) {
+        copyFileSync(
+            resolve(root, "tests/browser", file),
+            resolve(fixture, file),
+        );
+    }
+
     const shared = {
         absWorkingDir: fixture,
         bundle: true,
@@ -77,7 +85,7 @@ async function main() {
     assert.match(markup, /id="styled-custom-title"/);
     assert.match(markup, /id="unstyled-custom-description"/);
     const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>SFIcon verification</title><style>body{font:16px system-ui;margin:24px;color:#243044}main{max-width:1040px}button{padding:8px 12px}section{display:inline-block;vertical-align:top;width:44%;margin:1%;padding:1%;background:#f5f6f7}section div{min-height:38px;display:flex;gap:12px;align-items:center}svg{flex:none}[class~="h-[1em]"]{height:1em}.h-8{height:32px}.w-10{width:40px}pre{font-size:12px;white-space:pre-wrap}</style></head><body><div id="root">${markup}</div><pre id="errors"></pre><script type="module" src="/client.js"></script></body></html>`;
-    const server = http.createServer((request, response) => {
+    server = http.createServer((request, response) => {
         if (request.url === "/") {
             response.setHeader("Content-Type", "text/html; charset=utf-8");
             response.end(html);
@@ -92,12 +100,6 @@ async function main() {
             response.end();
         }
     });
-    const close = () => {
-        server.close();
-        rmSync(fixture, { recursive: true, force: true });
-    };
-    process.once("SIGINT", close);
-    process.once("SIGTERM", close);
     await new Promise((resolveListen, rejectListen) => {
         server.once("error", rejectListen);
         server.listen(port, "127.0.0.1", () => {
@@ -110,10 +112,31 @@ async function main() {
             resolveListen();
         });
     });
+    server.once("close", () => {
+        rmSync(fixture, { recursive: true, force: true });
+    });
+    serverOwnsFixture = true;
+    let closing = false;
+    const close = () => {
+        if (closing) return;
+        closing = true;
+        server.close((error) => {
+            if (error) {
+                console.error(error);
+                process.exitCode = 1;
+            }
+        });
+    };
+    process.once("SIGINT", close);
+    process.once("SIGTERM", close);
 }
 
 main().catch((error) => {
-    rmSync(fixture, { recursive: true, force: true });
+    if (serverOwnsFixture) {
+        server.close();
+    } else {
+        rmSync(fixture, { recursive: true, force: true });
+    }
     console.error(error);
     process.exitCode = 1;
 });

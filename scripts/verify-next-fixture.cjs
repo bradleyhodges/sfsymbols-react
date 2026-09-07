@@ -47,24 +47,9 @@ for (const packageName of [
 }
 
 const source = resolve(root, "tests/integration/next");
-const fixture = mkdtempSync(resolve(consumer, ".sfsymbols-next-fixture-"));
-mkdirSync(resolve(fixture, "app"), { recursive: true });
-copyFileSync(
-    resolve(source, "app/layout.jsx"),
-    resolve(fixture, "app/layout.jsx"),
-);
-copyFileSync(resolve(source, "app/page.jsx"), resolve(fixture, "app/page.jsx"));
-copyFileSync(
-    resolve(source, "next.config.mjs"),
-    resolve(fixture, "next.config.mjs"),
-);
-writeFileSync(
-    resolve(fixture, "package.json"),
-    JSON.stringify({ name: "sfsymbols-next-fixture", private: true }),
-);
-
 const nextCli = requireFromConsumer.resolve("next/dist/bin/next");
 const environment = { ...process.env, NEXT_TELEMETRY_DISABLED: "1" };
+const fixture = mkdtempSync(resolve(consumer, ".sfsymbols-next-fixture-"));
 
 function build(extraArguments) {
     const result = spawnSync(
@@ -118,6 +103,24 @@ async function waitForServer(child, url) {
 }
 
 async function main() {
+    mkdirSync(resolve(fixture, "app"), { recursive: true });
+    copyFileSync(
+        resolve(source, "app/layout.jsx"),
+        resolve(fixture, "app/layout.jsx"),
+    );
+    copyFileSync(
+        resolve(source, "app/page.jsx"),
+        resolve(fixture, "app/page.jsx"),
+    );
+    copyFileSync(
+        resolve(source, "next.config.mjs"),
+        resolve(fixture, "next.config.mjs"),
+    );
+    writeFileSync(
+        resolve(fixture, "package.json"),
+        JSON.stringify({ name: "sfsymbols-next-fixture", private: true }),
+    );
+
     build(["--webpack"]);
     const server = spawn(
         process.execPath,

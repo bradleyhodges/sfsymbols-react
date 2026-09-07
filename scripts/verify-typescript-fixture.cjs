@@ -34,20 +34,20 @@ for (const entry of [
 }
 const tsc = resolve(typescriptRoot, "node_modules/typescript/bin/tsc");
 const fixture = mkdtempSync(resolve(consumer, ".sfsymbols-types-fixture-"));
-copyFileSync(
-    resolve(root, "tests/integration/types/consumer.tsx"),
-    resolve(fixture, "consumer.tsx"),
-);
-writeFileSync(
-    resolve(fixture, "package.json"),
-    JSON.stringify({
-        name: "sfsymbols-types-fixture",
-        private: true,
-        type: "module",
-    }),
-);
-
 try {
+    copyFileSync(
+        resolve(root, "tests/integration/types/consumer.tsx"),
+        resolve(fixture, "consumer.tsx"),
+    );
+    writeFileSync(
+        resolve(fixture, "package.json"),
+        JSON.stringify({
+            name: "sfsymbols-types-fixture",
+            private: true,
+            type: "module",
+        }),
+    );
+
     for (const [label, moduleName, resolution] of [
         ["node10", "commonjs", "node10"],
         ["nodeNext", "NodeNext", "NodeNext"],
