@@ -1,0 +1,278 @@
+const assert = require("node:assert/strict");
+const { spawnSync } = require("node:child_process");
+const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("node:fs");
+const { tmpdir } = require("node:os");
+const { dirname, join, resolve } = require("node:path");
+const test = require("node:test");
+
+const root = resolve(__dirname, "..");
+const npmCli = resolve(
+    dirname(process.execPath),
+    "node_modules/npm/bin/npm-cli.js",
+);
+const packageJson = JSON.parse(
+    readFileSync(resolve(root, "package.json"), "utf8"),
+);
+
+const publicEntries = {
+    ".": "index",
+    "./unstyled": "unstyled",
+    "./metadata": "metadata",
+    "./types": "types",
+};
+
+test("package metadata exposes dual modules and declarations for every public entry", () => {
+    assert.equal(packageJson.version, "8.1.0");
+    assert.equal(packageJson.main, "./dist/main/index.js");
+    assert.equal(packageJson.module, "./dist/module/index.js");
+    assert.equal(packageJson.types, "./dist/main/index.d.ts");
+    assert.equal(packageJson.sideEffects, false);
+
+    for (const [publicPath, file] of Object.entries(publicEntries)) {
+        assert.deepEqual(packageJson.exports[publicPath], {
+            import: {
+                types: `./dist/module/${file}.d.ts`,
+                default: `./dist/module/${file}.js`,
+            },
+            require: {
+                types: `./dist/main/${file}.d.ts`,
+                default: `./dist/main/${file}.js`,
+            },
+        });
+        if (publicPath !== ".") {
+            assert.deepEqual(
+                packageJson.typesVersions["*"][publicPath.slice(2)],
+                [`dist/main/${file}.d.ts`],
+            );
+        }
+    }
+    assert.equal(
+        Object.hasOwn(packageJson.typesVersions["*"], "*"),
+        false,
+        "legacy mappings must not expose unknown subpaths as the root API",
+    );
+});
+
+test("production dependencies contain only the renderer runtime", () => {
+    assert.deepEqual(packageJson.dependencies, {
+        "@bradleyhodges/sfsymbols-types": "^8.0.4",
+        cn: "^0.2.5",
+    });
+    assert.deepEqual(packageJson.peerDependencies, {
+        react: "^18.0.0 || ^19.0.0",
+    });
+    assert.equal(packageJson.devDependencies.react, "^19.2.8");
+    for (const dependency of [
+        "@types/node",
+        "next",
+        "react",
+        "react-dom",
+        "tailwind-merge",
+    ]) {
+        assert.equal(
+            Object.hasOwn(packageJson.dependencies, dependency),
+            false,
+            `${dependency} must not be a production dependency`,
+        );
+    }
+});
+
+test("package allowlist and lifecycle scripts are release-safe", () => {
+    assert.deepEqual(packageJson.files, [
+        "dist",
+        "src",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md",
+    ]);
+    assert.equal(packageJson.scripts.build, "node scripts/build.cjs");
+    assert.equal(
+        packageJson.scripts.test,
+        "pnpm run build && node --test tests/*.test.cjs",
+    );
+    assert.equal(
+        packageJson.scripts.prepack,
+        "pnpm run build && pnpm run verify-package",
+    );
+    assert.equal(
+        packageJson.scripts["verify-package"],
+        "node scripts/verify-package.cjs",
+    );
+    assert.doesNotMatch(
+        packageJson.scripts["verify-package"],
+        /(?:npm|pnpm)\s+(?:run\s+)?pack\b/i,
+    );
+    assert.match(packageJson.scripts.pub, /npm publish/);
+});
+
+test("release verifier accepts a fresh dual-module build", () => {
+    const result = spawnSync(
+        process.execPath,
+        [resolve(root, "scripts/verify-package.cjs")],
+        { cwd: root, encoding: "utf8" },
+    );
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, /Package verification passed/);
+});
+
+test("packed artifacts contain only the allowlist and load through native ESM and CommonJS", () => {
+    const packDirectory = mkdtempSync(join(tmpdir(), "sfsymbols-react-pack-"));
+    const consumer = mkdtempSync(join(tmpdir(), "sfsymbols-react-consumer-"));
+    try {
+        const packed = spawnSync(
+            process.execPath,
+            [
+                npmCli,
+                "pack",
+                "--ignore-scripts",
+                "--json",
+                "--pack-destination",
+                packDirectory,
+            ],
+            { cwd: root, encoding: "utf8" },
+        );
+        assert.equal(packed.status, 0, packed.stdout + packed.stderr);
+        const [manifest] = JSON.parse(packed.stdout);
+        assert.equal(manifest.name, packageJson.name);
+        assert.equal(manifest.version, packageJson.version);
+        assert.ok(manifest.files.length > 0);
+        for (const { path } of manifest.files) {
+            assert.match(
+                path,
+                /^(?:package\.json|README\.md|LICENSE|CHANGELOG\.md|dist\/|src\/)/,
+                `unexpected packed path: ${path}`,
+            );
+        }
+        for (const prefix of ["dist/", "src/"]) {
+            assert.ok(
+                manifest.files.some(({ path }) => path.startsWith(prefix)),
+                `${prefix} must be packed`,
+            );
+        }
+        const tarball = resolve(packDirectory, manifest.filename);
+        writeFileSync(
+            resolve(consumer, "package.json"),
+            JSON.stringify({ private: true, type: "module" }),
+        );
+        const installed = spawnSync(
+            process.execPath,
+            [
+                npmCli,
+                "install",
+                "--ignore-scripts",
+                "--no-audit",
+                "--no-fund",
+                "--package-lock=false",
+                tarball,
+                "react@19.2.8",
+                "react-dom@19.2.8",
+            ],
+            { cwd: consumer, encoding: "utf8" },
+        );
+        assert.equal(installed.status, 0, installed.stdout + installed.stderr);
+
+        const commonJs = spawnSync(
+            process.execPath,
+            [
+                "-e",
+                `const assert=require("node:assert/strict");const root=require("${packageJson.name}");const unstyled=require("${packageJson.name}/unstyled");const metadata=require("${packageJson.name}/metadata");require("${packageJson.name}/types");assert.equal(root.default,root.SFIcon);assert.equal(unstyled.default,unstyled.SFIcon);assert.equal(typeof metadata.getIconKeywords,"function");`,
+            ],
+            { cwd: consumer, encoding: "utf8" },
+        );
+        assert.equal(commonJs.status, 0, commonJs.stdout + commonJs.stderr);
+
+        const esm = spawnSync(
+            process.execPath,
+            [
+                "--input-type=module",
+                "-e",
+                `import assert from "node:assert/strict";import Root,{SFIcon} from "${packageJson.name}";import Unstyled,{SFIcon as NamedUnstyled} from "${packageJson.name}/unstyled";import {getIconVariants} from "${packageJson.name}/metadata";import "${packageJson.name}/types";assert.equal(Root,SFIcon);assert.equal(Unstyled,NamedUnstyled);assert.equal(typeof getIconVariants,"function");`,
+            ],
+            { cwd: consumer, encoding: "utf8" },
+        );
+        assert.equal(esm.status, 0, esm.stdout + esm.stderr);
+
+        const verifiedConsumer = spawnSync(
+            process.execPath,
+            [
+                resolve(root, "scripts/verify-package.cjs"),
+                "--consumer",
+                `test=${consumer}`,
+            ],
+            { cwd: root, encoding: "utf8" },
+        );
+        assert.equal(
+            verifiedConsumer.status,
+            0,
+            verifiedConsumer.stdout + verifiedConsumer.stderr,
+        );
+        assert.match(
+            verifiedConsumer.stdout,
+            /Verified consumer test \(React 19\.2\.8\)/,
+        );
+    } finally {
+        rmSync(packDirectory, { recursive: true, force: true });
+        rmSync(consumer, { recursive: true, force: true });
+    }
+});
+
+test("bundle boundaries keep cn out of unstyled and helper-only imports", async () => {
+    const esbuild = require("esbuild");
+    async function bundle(contents, format = "esm") {
+        return esbuild.build({
+            absWorkingDir: root,
+            bundle: true,
+            external: ["react", "react/jsx-runtime"],
+            format,
+            logLevel: "silent",
+            metafile: true,
+            platform: "browser",
+            stdin: {
+                contents,
+                resolveDir: root,
+                sourcefile: "package-boundary.mjs",
+            },
+            treeShaking: true,
+            write: false,
+        });
+    }
+    function includesCn(result) {
+        return Object.values(result.metafile.outputs).some((output) =>
+            Object.entries(output.inputs).some(
+                ([path, contribution]) =>
+                    contribution.bytesInOutput > 0 &&
+                    /(?:^|[\\/])node_modules[\\/]\.pnpm[\\/]cn@|(?:^|[\\/])node_modules[\\/]cn[\\/]/.test(
+                        path,
+                    ),
+            ),
+        );
+    }
+
+    const styled = await bundle(
+        `import { SFIcon } from "${packageJson.name}"; console.log(SFIcon);`,
+    );
+    assert.equal(includesCn(styled), true, "styled entry must retain cn");
+
+    const unstyled = await bundle(
+        `import { SFIcon } from "${packageJson.name}/unstyled"; console.log(SFIcon);`,
+    );
+    assert.equal(includesCn(unstyled), false, "unstyled entry must exclude cn");
+    const unstyledCommonJs = await bundle(
+        `const { SFIcon } = require("${packageJson.name}/unstyled"); console.log(SFIcon);`,
+        "cjs",
+    );
+    assert.equal(
+        includesCn(unstyledCommonJs),
+        false,
+        "CommonJS unstyled entry must exclude cn",
+    );
+
+    const helpers = await bundle(
+        `import { getIconKeywords, getIconVariants } from "${packageJson.name}"; console.log(getIconKeywords, getIconVariants);`,
+    );
+    assert.equal(
+        includesCn(helpers),
+        false,
+        "helper-only root imports must tree-shake the styled renderer",
+    );
+});

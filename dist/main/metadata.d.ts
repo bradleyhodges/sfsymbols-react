@@ -10,3 +10,4 @@ export declare function getIconKeywords(icon: unknown): readonly SFIconKeyword[]
  * Specify extra variant names as the type parameter for custom catalogues.
  */
 export declare function getIconVariants<CustomVariant extends string = never>(icon: unknown): Readonly<Partial<Record<SFIconVariant | CustomVariant, string>>>;
+//# sourceMappingURL=metadata.d.ts.map

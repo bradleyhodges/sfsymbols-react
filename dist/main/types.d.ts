@@ -30,3 +30,4 @@ export interface SFIconProps extends LegacySFIconProps {
     /** Explicit path overrides, applied after color and opacity. Original geometry is immutable. */
     pathProps?: SFIconPathProps | ((path: SFIconPath, index: number) => SFIconPathProps);
 }
+//# sourceMappingURL=types.d.ts.map
