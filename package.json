@@ -85,7 +85,7 @@
         "typescript": "^7.0.2"
     },
     "dependencies": {
-        "@bradleyhodges/sfsymbols-types": "^8.0.4",
+        "@bradleyhodges/sfsymbols-types": "^8.1.1",
         "cn": "^0.2.5"
     },
     "peerDependencies": {
