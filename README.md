@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>@bradleyhodges/sfsymbols-react</h1>
-<h3>Companion package containing React components and metadata helpers for the <a href="https://github.com/bradleyhodges/sfsymbols">@bradleyhodges/sfsymbols</a> package.</h3>
+<h3>Companion package for using Apple's SF Symbols icons from the <a href="https://github.com/bradleyhodges/sfsymbols">@bradleyhodges/sfsymbols</a> package in React/Next.js.</h3>
 
 <p align="center">
 				<a href="">
