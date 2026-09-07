@@ -99,3 +99,6 @@ yarn-error.log
 
 # Build directory
 build-out
+
+# Build tests
+test
