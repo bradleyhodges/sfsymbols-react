@@ -40,6 +40,10 @@ test('rejects malformed SVG commands and nonfinite path coordinates', () => {
 test('preserves empty non-rendering paths present in the current corpus', () => {
   assert.equal(parseIcon(leaf.replace('M0 0h20v20z', ''), 'sfCircle').paths[0].d, '');
 });
+test('bounds aggregate geometry when static aliases repeat a large path', () => {
+  const source = `const p={d:"${'M0 0'.repeat(4000)}"}; const a={iconName:'sfCircle',viewBox:'0 0 20 20',svgPathData:[p,p,p,p,p]};export{a as sfCircle};`;
+  assert.throws(() => parseIcon(source, 'sfCircle'), /geometry exceeds/);
+});
 test('imports preserve alias/namespace duplicates and type-only collisions', () => {
   assert.equal(planImport(`import {sfCircle as ring} from '@bradleyhodges/sfsymbols';`, 'sfCircle', 'typescript').binding, 'ring');
   assert.equal(planImport(`import * as icons from '@bradleyhodges/sfsymbols';`, 'sfCircle', 'typescript').binding, 'icons.sfCircle');

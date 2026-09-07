@@ -122,8 +122,11 @@ export function parseIcon(source: string, name: string): PreviewIcon {
   const coordinates = icon.viewBox.trim().split(/[\s,]+/).map(Number);
   if (coordinates.length !== 4 || coordinates.some(value => !Number.isFinite(value) || Math.abs(value) > 100000) || coordinates[2] <= 0 || coordinates[3] <= 0) throw new Error('Invalid viewBox.');
   if (!icon.svgPathData.length || icon.svgPathData.length > 128) throw new Error('Invalid path count.');
+  let geometryLength = 0;
   const paths = icon.svgPathData.map(item => {
     if (!record(item) || typeof item.d !== 'string' || !validGeometry(item.d)) throw new Error('Invalid path geometry.');
+    geometryLength += item.d.length;
+    if (geometryLength > MAX_LEAF_BYTES) throw new Error('Icon geometry exceeds supported limits.');
     if (item.fill !== undefined && item.fill !== 'currentColor' && item.fill !== 'none') throw new Error('Unsupported path fill.');
     if (item.fillOpacity !== undefined && (typeof item.fillOpacity !== 'number' || item.fillOpacity < 0 || item.fillOpacity > 1)) throw new Error('Invalid path opacity.');
     return { d: item.d, fill: item.fill as string | undefined, fillOpacity: item.fillOpacity as number | undefined };

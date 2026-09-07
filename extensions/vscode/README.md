@@ -30,7 +30,7 @@ The result is `artifacts/sfsymbols-preview-0.1.0.vsix`. To install it yourself, 
 
 The extension does not execute workspace modules, run a package manager, or make network requests. It reads the manifest and parses leaf files as bounded static data, rejects executable expressions/getters/spreads and paths outside the real package directory, and loads geometry only for hovered or selected icons. SVG path commands, arc flags, viewBoxes, fills and opacity are validated. Empty non-rendering paths in the catalogue are preserved. Previews use an explicit light/dark theme color and escaped SVG in extension-owned storage; hover Markdown is untrusted with HTML disabled.
 
-Limits are 64 KiB per leaf, 256 KiB per manifest, 20,000 icons, 40,000 directory entries, 128 paths per icon, 32 KiB per path, 32 levels / 10,000 evaluated static nodes, eight cached catalogue directories (30-second expiry), 16 queued previews and 128 SVG files per activation. Cached previews are disposed at shutdown. A package update appears in the catalogue within 30 seconds; geometry is read afresh when requested. Diagnostics are available in the **SF Symbols** Output channel.
+Limits are 64 KiB per leaf and total icon geometry, 256 KiB per manifest, 20,000 icons, 40,000 directory entries, 128 paths per icon, 32 KiB per path, 32 levels / 10,000 evaluated static nodes, eight cached catalogue directories (30-second expiry), 16 queued previews and 128 SVG files per activation. Cached previews are disposed at shutdown. A package update appears in the catalogue within 30 seconds; geometry is read afresh when requested. Diagnostics are available in the **SF Symbols** Output channel.
 
 ## Verification
 
