@@ -1,5 +1,8 @@
+import type {
+    SFIconPathProps,
+    SFIconProps,
+} from "@bradleyhodges/sfsymbols-types";
 import * as React from "react";
-import type { SFIconPathProps, SFIconProps } from "./types.js";
 
 type ResolveClassName = (
     className: string | undefined,

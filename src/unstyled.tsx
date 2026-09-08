@@ -7,7 +7,7 @@ export type {
     SFIconPathProps,
     SFIconProps,
     SFIconVariant,
-} from "./types.js";
+} from "@bradleyhodges/sfsymbols-types";
 
 /** Renders the same SF Symbol SVG contract with caller classes passed through unchanged. */
 export const SFIcon = createSFIcon((className) => className);

@@ -1,6 +1,12 @@
-import type { SFIconKeyword, SFIconVariant } from "./types.js";
+import type {
+    SFIconKeyword,
+    SFIconVariant,
+} from "@bradleyhodges/sfsymbols-types";
 
-export type { SFIconKeyword, SFIconVariant } from "./types.js";
+export type {
+    SFIconKeyword,
+    SFIconVariant,
+} from "@bradleyhodges/sfsymbols-types";
 
 const RESERVED_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 

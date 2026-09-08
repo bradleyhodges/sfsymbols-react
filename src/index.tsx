@@ -7,4 +7,4 @@ export type {
     SFIconPathProps,
     SFIconProps,
     SFIconVariant,
-} from "./types.js";
+} from "@bradleyhodges/sfsymbols-types";
