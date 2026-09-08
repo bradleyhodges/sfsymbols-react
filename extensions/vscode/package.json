@@ -1,61 +1,59 @@
 {
-  "name": "sfsymbols-preview",
-  "displayName": "SF Symbols Preview",
-  "description": "Local SF Symbols previews and exact per-icon imports for JavaScript and TypeScript.",
-  "version": "0.1.0",
-  "publisher": "bradleyhodges",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bradleyhodges/sfsymbols-react"
-  },
-  "engines": {
-    "vscode": "^1.95.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "main": "./dist/extension.cjs",
-  "activationEvents": [
-    "onLanguage:typescript",
-    "onLanguage:typescriptreact",
-    "onLanguage:javascript",
-    "onLanguage:javascriptreact"
-  ],
-  "capabilities": {
-    "untrustedWorkspaces": {
-      "supported": true
+    "name": "sfsymbols-preview",
+    "displayName": "SF Symbols Preview",
+    "description": "Local SF Symbols previews and exact per-icon imports for JavaScript and TypeScript.",
+    "version": "0.1.0",
+    "publisher": "bradleyhodges",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bradleyhodges/sfsymbols-react"
     },
-    "virtualWorkspaces": false
-  },
-  "contributes": {
-    "commands": [
-      {
-        "command": "sfsymbols.insertIcon",
-        "title": "SF Symbols: Preview and Import Icon"
-      }
-    ]
-  },
-  "scripts": {
-    "test": "tsx --test tests/*.test.ts",
-    "test:corpus": "tsx scripts/check-corpus.ts",
-    "test:host": "node scripts/test-host.cjs",
-    "typecheck": "tsc --noEmit",
-    "build": "node scripts/build.cjs",
-    "package": "pnpm run build && vsce package --no-dependencies --allow-missing-repository --out artifacts/sfsymbols-preview-0.1.0.vsix"
-  },
-  "dependencies": {
-    "@babel/parser": "^7.28.4",
-    "@babel/traverse": "^7.29.8"
-  },
-  "devDependencies": {
-    "@types/babel__traverse": "^7.28.0",
-    "@types/node": "^22.0.0",
-    "@types/vscode": "^1.95.0",
-    "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.6.0",
-    "esbuild": "^0.27.7",
-    "tsx": "^4.20.0",
-    "typescript": "^5.9.3"
-  }
+    "engines": {
+        "vscode": "^1.95.0"
+    },
+    "categories": ["Other"],
+    "main": "./dist/extension.cjs",
+    "activationEvents": [
+        "onLanguage:typescript",
+        "onLanguage:typescriptreact",
+        "onLanguage:javascript",
+        "onLanguage:javascriptreact"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": true
+        },
+        "virtualWorkspaces": false
+    },
+    "contributes": {
+        "commands": [
+            {
+                "command": "sfsymbols.insertIcon",
+                "title": "SF Symbols: Preview and Import Icon"
+            }
+        ]
+    },
+    "scripts": {
+        "test": "tsx --test tests/*.test.ts",
+        "test:corpus": "tsx scripts/check-corpus.ts",
+        "test:host": "node scripts/test-host.cjs",
+        "typecheck": "tsc --noEmit",
+        "build": "node scripts/build.cjs",
+        "package": "pnpm run build && vsce package --no-dependencies --allow-missing-repository --out artifacts/sfsymbols-preview-0.1.0.vsix"
+    },
+    "dependencies": {
+        "@babel/parser": "^7.28.4",
+        "@babel/traverse": "^7.29.8"
+    },
+    "devDependencies": {
+        "@types/babel__traverse": "^7.28.0",
+        "@types/node": "^22.0.0",
+        "@types/vscode": "^1.95.0",
+        "@vscode/test-electron": "^2.5.2",
+        "@vscode/vsce": "^3.6.0",
+        "esbuild": "^0.27.7",
+        "tsx": "^4.20.0",
+        "typescript": "^5.9.3"
+    }
 }
