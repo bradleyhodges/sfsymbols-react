@@ -1,5 +1,5 @@
-import type { SFIconKeyword, SFIconVariant } from "./types.js";
-export type { SFIconKeyword, SFIconVariant } from "./types.js";
+import type { SFIconKeyword, SFIconVariant } from "@bradleyhodges/sfsymbols-types";
+export type { SFIconKeyword, SFIconVariant, } from "@bradleyhodges/sfsymbols-types";
 /**
  * Returns frozen keyword copies from catalogue arrays or legacy string dictionaries.
  * Invalid fields, inherited properties and accessors are ignored; missing metadata stays absent.

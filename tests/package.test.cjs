@@ -63,7 +63,7 @@ test("package metadata exposes dual modules and declarations for every public en
 
 test("production dependencies contain only the renderer runtime", () => {
     assert.deepEqual(packageJson.dependencies, {
-        "@bradleyhodges/sfsymbols-types": "^8.1.1",
+        "@bradleyhodges/sfsymbols-types": "^8.1.3",
         cn: "^0.2.5",
     });
     assert.deepEqual(packageJson.peerDependencies, {
